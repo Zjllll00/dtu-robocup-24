@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>dtu_robocup_24</name>
+  <version>0.1.0</version>
+  <description>Package to compete for the DTU RoboCup 2024</description>
+  <maintainer email="geoffrey.cote@centraliens-nantes.org">Geoffrey Côte</maintainer>
+  <author>Geoffrey Côte</author>
+  <url type="repository">https://github.com/Baxterminator/dtu-robocup-24</url>
+  <license>MIT</license>
+
+  <depend>rclpy</depend>
+  <depend>ament_index</depend>
+  <depend>raubase_ros</depend>
+
+  <!-- Messages --> 
+  <depend>std_msgs</depend>
+  <depend>raubase_msgs</depend>
+  <depend>sensor_msgs</depend>
+
+  <!-- Libraries --> 
+  <depend>OpenCV</depend>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+  <buildtool_depend>ament_cmake_python</buildtool_depend>
+  <buildtool_depend>ament_package</buildtool_depend>
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>
