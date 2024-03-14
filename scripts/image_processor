@@ -1,21 +1,21 @@
 #!/usr/bin/python3
 import rclpy
-from raubase_ros.interface import ImageProcessorInterface
-from dtu_robocup_24.image import ArUcoProcessor, BallDetector, BallDetectorLearned
+from raubase_ros.interface import ImageProcessor as proc_interface
+from dtu_robocup_24.image import ArUcoProcessor, BallProcessor, MLObjectProcessor
 
 
-class ImageProcessor(ImageProcessorInterface):
+class ImageProcessor(proc_interface):
     """
     Image processor for the DTU RoboCup24
     """
 
     def __init__(self) -> None:
-        super().__init__("ImageProcessor")  # type: ignore
+        super().__init__("ImageProcessor")
 
         self.get_logger().info("Loading processing units")
         self.attach_processing_unit(ArUcoProcessor())
-        self.attach_processing_unit(BallDetector())
-        self.attach_processing_unit(BallDetectorLearned())
+        self.attach_processing_unit(BallProcessor())
+        self.attach_processing_unit(MLObjectProcessor())
         self.get_logger().info("Done!")
 
 

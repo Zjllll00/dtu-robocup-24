@@ -1,2 +1,3 @@
-from .ArUco import *
-from .ball_detection import *
+from .ArUco import ArUcoProcessor
+from .ball_detection import BallProcessor
+from .yolo_processor import MLObjectProcessor

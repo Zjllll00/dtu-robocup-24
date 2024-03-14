@@ -1,0 +1,19 @@
+# =============================================================================
+#
+#                       Image Processor configuration
+# 
+#  This file contains the configurations needed for running the image
+#  processor.
+# =============================================================================
+
+proc:
+  use_compressed: True
+  on_demand: False
+  rqst_timeout: 0.05
+  request_hz: 10
+  in_debug: True
+ball-detector:
+  ball_lower: "64640A"
+  ball_upper: "FFFF14"
+yolo:
+  yolo_model: "ball_detection"
