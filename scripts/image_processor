@@ -26,8 +26,6 @@ class ImageProcessor(proc_interface):
 def main(args=None):
     rclpy.init(args=args)
 
-    ArUcoProcessor()
-
     proc = ImageProcessor()
 
     while rclpy.ok():
