@@ -4,7 +4,7 @@ from cv_bridge import CvBridge
 from raubase_ros.interface import CVImage, ImageProcessingUnit, toBGR, ProcessingData
 from rclpy.node import Node
 from sensor_msgs.msg import Image
-from raubase_msgs.msg import BallObject, ResultBalls
+from raubase_msgs.msg import ObjectBall, ResultBalls
 
 
 class BallProcessor(ImageProcessingUnit):
@@ -78,7 +78,7 @@ class BallProcessor(ImageProcessingUnit):
             c = max(contours, key=cv.contourArea)
             (x, y), radius = cv.minEnclosingCircle(c)
             if radius > BallProcessor.BALL_RADIUS:  # RADIUS OF THE BALL
-                r = BallObject()
+                r = ObjectBall()
                 r.x, r.y, r.r = int(x), int(y), float(radius)
                 self.ball_msg.detected.append(r)
 

@@ -83,7 +83,9 @@ class ArUcoProcessor(ImageProcessingUnit):
     # =================================================================
     #                           Methods
     # =================================================================
-    def make_aruco_obj(self, cnrs: MatLike, id: int) -> ObjectArUco:
+    def make_aruco_obj(
+        self, cnrs: MatLike, id: int, print_debug: bool, debug_img: CVImage | None
+    ) -> ObjectArUco:
         """
         Construct an ArUco code result object.
         """
@@ -105,12 +107,23 @@ class ArUcoProcessor(ImageProcessingUnit):
             np.array(self.data.cam_info.d),
             flags=cv.SOLVEPNP_ITERATIVE,
         )
-        if not success:
-            r.x.x, r.x.y, r.x.z = t[0], t[1], t[2]
-            rot_mat = Rotation.from_rotvec([rot[0], rot[1], rot[2]]).as_matrix()
-            r.rx = rot_mat[:, 0]
-            r.ry = rot_mat[:, 1]
-            r.rz = rot_mat[:, 2]
+        if success:
+            r.x.x, r.x.y, r.x.z = float(t[0]), float(t[1]), float(t[2])
+            rot_mat = Rotation.from_rotvec([r.x.x, r.x.y, r.x.z]).as_matrix()
+            r.rx.x, r.rx.y, r.rx.z = rot_mat[0, 0], rot_mat[1, 0], rot_mat[2, 0]
+            r.ry.x, r.ry.y, r.ry.z = rot_mat[0, 1], rot_mat[1, 1], rot_mat[2, 1]
+            r.rz.x, r.rz.y, r.rz.z = rot_mat[0, 2], rot_mat[1, 2], rot_mat[2, 2]
+
+            if print_debug:
+                cv.drawFrameAxes(
+                    debug_img,
+                    self.data.cam_info.k.reshape((3, 3)),
+                    np.array(self.data.cam_info.d),
+                    rot,
+                    t,
+                    2.5,
+                    2,
+                )
         else:
             self._logger.warn("Failed to compute position and frame for ArUco code!")
 
@@ -150,7 +163,14 @@ class ArUcoProcessor(ImageProcessingUnit):
         # Make ArUco objects
         if ids is not None:
             for corners, id in zip(cnrs, ids):
-                self.aruco_msg.detected.append(self.make_aruco_obj(corners[0], int(id)))
+                self.aruco_msg.detected.append(
+                    self.make_aruco_obj(
+                        corners[0],
+                        int(id),
+                        print_debug,
+                        debug_img,
+                    )
+                )
 
         self.aruco_pub.publish(self.aruco_msg)
 
