@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 import rclpy
 from raubase_ros.interface import ImageProcessor as proc_interface
-from dtu_robocup_24.image import ArUcoProcessor, BallProcessor, MLObjectProcessor
+from dtu_robocup_24.image import ArUcoProcessor, MLObjectProcessor
 
 
 class ImageProcessor(proc_interface):
@@ -14,7 +14,6 @@ class ImageProcessor(proc_interface):
 
         self.get_logger().info("Loading processing units")
         self.attach_processing_unit(ArUcoProcessor())
-        self.attach_processing_unit(BallProcessor())
         self.attach_processing_unit(MLObjectProcessor())
         self.get_logger().info("Done!")
 

@@ -1,7 +1,7 @@
 import cv2 as cv
 import numpy as np
 from cv_bridge import CvBridge
-from raubase_ros.interface import CVImage, ImageProcessingUnit, toBGR
+from raubase_ros.interface import CVImage, ImageProcessingUnit, toBGR, ProcessingData
 from rclpy.node import Node
 from sensor_msgs.msg import Image
 from raubase_msgs.msg import BallObject, ResultBalls
@@ -28,7 +28,9 @@ class BallProcessor(ImageProcessingUnit):
         super().__init__()
         self.bridge = CvBridge()
 
-    def setup(self, node: Node) -> None:
+    def setup(self, node: Node, proc_data: ProcessingData) -> None:
+        self.processing_data = proc_data
+
         # Initialize parameters
         self._lower_ball = toBGR(
             node.declare_parameter("ball_lower", "64640A")  # In RGB

@@ -3,7 +3,7 @@ from typing import Dict, Iterator, List, Tuple
 
 import cv2 as cv
 from ament_index_python import get_package_share_directory
-from raubase_msgs.msg import ResultYolo, YoloObject
+from raubase_msgs.msg import ResultYolo, ObjectYolo
 from raubase_ros.interface import CVImage, ImageProcessingUnit
 from raubase_ros.utils import DimType
 from raubase_ros.wrappers import NodeWrapper, ParameterWrapper
@@ -85,15 +85,15 @@ class MLObjectProcessor(ImageProcessingUnit):
         """
         for r in results:
             for box, conf, c_id in zip(r.boxes.xyxy, r.boxes.conf, r.boxes.cls):
-                yield (box, float(conf), r.names[c_id])
+                yield (box, float(conf), r.names[int(c_id)])
 
     def make_yolo_obj(
         self, boxes: Tuple[float, float, float, float], conf: float, class_name: str
-    ) -> YoloObject:
+    ) -> ObjectYolo:
         """
         Construct the YOLO object based on the given box.
         """
-        r = YoloObject()
+        r = ObjectYolo()
 
         # Make image position
         r.xmin, r.ymin, r.xmax, r.ymax = map(int, boxes)
@@ -108,12 +108,13 @@ class MLObjectProcessor(ImageProcessingUnit):
         # Compute coordinates in robot frame
         width, height = (r.xmax - r.xmin), (r.ymax - r.ymin)
         xc, yc = r.xmin + width / 2, r.ymin + height / 2
-        r.robot_x, r.robot_y, r.robot_z = self.in_robot_frame(
+        r.robot_x.x, r.robot_x.y, r.robot_x.z = self.in_robot_frame(
             xc, yc, width, real_width, dim_type=DimType.WIDTH
         )
         return r
 
-    def draw_debug(self, debug_img: CVImage, obj: YoloObject) -> None:
+    @staticmethod
+    def draw_debug(debug_img: CVImage, obj: ObjectYolo) -> None:
         """
         Draw the object onto the debug image.
         """
@@ -165,6 +166,6 @@ class MLObjectProcessor(ImageProcessingUnit):
                 self.yolo_msg.detected.append(obj)
 
                 if print_debug:
-                    self.draw_debug(debug_img, obj)
+                    MLObjectProcessor.draw_debug(debug_img, obj)
 
         self.yolo_pub.publish(self.yolo_msg)

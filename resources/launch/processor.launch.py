@@ -20,6 +20,7 @@ def generate_launch_description():
                 parameters=config.get_parameters(),
                 remappings=config.get_remaps(),
                 namespace=CAMERA_NAMESPACE,
+                emulate_tty=True,
             )
         ],
     )
