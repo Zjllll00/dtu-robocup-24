@@ -1,0 +1,22 @@
+#!/usr/bin/python3
+from raubase_ros.plan import BaseTask, BehaviourPlan
+from rclpy import init, ok, spin, shutdown
+
+from dtu_robocup_24.plans.TestTask import TestTask
+
+
+class DTURobocup24Plan(BehaviourPlan):
+    def __init__(self) -> None:
+        super().__init__()
+
+        self.add_task(TestTask())
+
+
+if __name__ == "__main__":
+    init()
+    node = DTURobocup24Plan()
+
+    while ok():
+        spin(node)
+
+    shutdown()
