@@ -15,7 +15,7 @@ class ArUcoProcessor(ImageProcessingUnit):
     Detect ArUco markers in OpenCV Images.
     """
 
-    ARUCO_TOPIC = "aruco"
+    ARUCO_TOPIC = "sensor/aruco"
     DEF_CODE_WIDTH = 0.08
 
     # =================================================================

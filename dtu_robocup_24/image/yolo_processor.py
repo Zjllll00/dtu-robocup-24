@@ -19,7 +19,7 @@ class MLObjectProcessor(ImageProcessingUnit):
     """
 
     # ROS things
-    YOLO_OUTPUT_TOPIC = "yolo"
+    YOLO_OUTPUT_TOPIC = "sensor/yolo"
     QOS = 10
 
     # Debug configuration

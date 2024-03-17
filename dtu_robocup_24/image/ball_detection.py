@@ -12,7 +12,7 @@ class BallProcessor(ImageProcessingUnit):
     Detect golf ball with color bounded filtering.
     """
 
-    BALL_TOPIC = "balls"
+    BALL_TOPIC = "sensor/balls"
 
     # Computations
     KERNEL = np.ones((1, 1), np.uint8)

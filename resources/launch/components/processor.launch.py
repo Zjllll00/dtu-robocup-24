@@ -1,7 +1,6 @@
 from launch import LaunchDescription
 from launch_ros.actions import Node
 from raubase_ros.config import ConfigFile
-from raubase_ros.constants.namespaces import CAMERA_NAMESPACE
 
 # =============================================================================
 #                               Camera Launcher
@@ -19,7 +18,6 @@ def generate_launch_description():
                 executable="image_processor",
                 parameters=config.get_parameters(),
                 remappings=config.get_remaps(),
-                namespace=CAMERA_NAMESPACE,
                 emulate_tty=True,
             )
         ],
