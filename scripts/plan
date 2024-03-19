@@ -1,8 +1,12 @@
 #!/usr/bin/python3
+import warnings
 from raubase_ros.plan import BaseTask, BehaviourPlan
 from rclpy import init, ok, spin, shutdown
 
 from dtu_robocup_24.plans.TestTask import TestTask
+
+
+warnings.simplefilter("ignore", UserWarning)
 
 
 class DTURobocup24Plan(BehaviourPlan):
