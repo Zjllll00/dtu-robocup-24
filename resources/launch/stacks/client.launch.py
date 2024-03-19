@@ -20,7 +20,7 @@ from dtu_robocup_24 import ROBOT_NAME
 
 
 def generate_launch_description():
-    debug_setup = LaunchConfiguration("debug_setup") == "robot"
+    local_setup = LaunchConfiguration("setup") != "robot"
     decl = DeclareLaunchArgument("setup", default_value="robot")
 
     return LaunchDescription(
@@ -29,15 +29,15 @@ def generate_launch_description():
                 [
                     decl,
                     LogInfo(
-                        condition=LaunchConfigurationEquals("setup", "robot"),
+                        condition=LaunchConfigurationNotEquals("setup", "robot"),
                         msg=[f"Running on local server"],
                     ),
                     LogInfo(
-                        condition=LaunchConfigurationNotEquals("setup", "robot"),
+                        condition=LaunchConfigurationEquals("setup", "robot"),
                         msg=[f"Running on robot server"],
                     ),
                     PushRosNamespace(
-                        ROBOT_NAME if debug_setup else get_top_namespace()
+                        (ROBOT_NAME if local_setup else get_top_namespace())
                     ),
                     IncludeLaunchDescription(
                         PythonLaunchDescriptionSource(
