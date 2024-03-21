@@ -10,10 +10,6 @@ from raubase_ros.plan.data import Requirement
 import numpy as np
 
 
-def close_to(x: float, y: float, eps: float = 5e-3) -> bool:
-    return np.abs(x - y) < eps
-
-
 class State(Enum):
     MOVE_NORTH = auto()
     TURN_WEST = auto()

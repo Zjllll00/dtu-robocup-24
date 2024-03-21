@@ -16,4 +16,4 @@ ball-detector:
   ball_lower: "64640A"
   ball_upper: "FFFF14"
 yolo:
-  yolo_model: "ball_detection"
+  yolo_model: "best_150_aug"
