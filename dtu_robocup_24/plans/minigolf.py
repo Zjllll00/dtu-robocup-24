@@ -34,6 +34,8 @@ class MinigolfTask(BaseTask):
         self.n_balls = 0
         self.ball_goal: Tuple[float, float, float] | None = None
         self.aruco_goal: Tuple[float, float, float] | None = None
+        self.initial_position:Tuple[float,float,float]|None=None
+        self.end_position:Tuple[float,float,float]|None=None
 
     def stop_condition(self):
         return self.stop_cond
@@ -68,6 +70,7 @@ class MinigolfTask(BaseTask):
         match self.state:
             case TaskStep.LAUNCH_BALL_FINDING:
                 self.logger.info("Looking for a ball")
+                self.initial_position = (self.data.odometry.x,self.data.odometry.y,self.data.odometry.heading)
                 self.data.reset_time()
                 self.state = TaskStep.FIND_BALL
 
@@ -87,7 +90,7 @@ class MinigolfTask(BaseTask):
                 # If no ball found, stop
                 if self.data.time_elapsed >= LOOKING_TIME:
                     self.logger.info("No ball found, stopping task ...")
-                    self.state = TaskStep.DONE
+                    self.state = TaskStep.BACK_TO_LINE
                     self.data.reset_distance()
 
             case TaskStep.MOVE_TO_BALL:
@@ -130,7 +133,7 @@ class MinigolfTask(BaseTask):
                 # If no ArUco found, stop
                 if self.data.time_elapsed >= LOOKING_TIME:
                     self.logger.info("No ArUco code found, stopping task ...")
-                    self.state = TaskStep.DONE
+                    self.state = TaskStep.BACK_TO_LINE
                     self.data.reset_distance()
 
             case TaskStep.MOVE_BALL_TO_ARUCO:
@@ -157,12 +160,17 @@ class MinigolfTask(BaseTask):
                     [obj for obj in self.data.last_yolo if obj.classifier == "ball"]
                 )
                 if ball_count >= 4:
-                    self.logger.info("We are still missing balls, let's try again")
-                    self.state = TaskStep.DONE
-                else:
                     self.logger.info("Collected all 4 balls, we can stop")
+                    self.state = TaskStep.BACK_TO_LINE
+                else:
+                    self.logger.info("We are still missing balls, let's try again")
                     self.state = TaskStep.MOVE_TO_BALL  # restart
-
+                    
+            case TaskStep.BACK_TO_LINE:
+                self.end_position = (self.data.odometry.x,self.data.odometry.y,self.data.odometry.heading)
+                def move_to_distance(self.end_position[0]-self.initial_position[0], self.end_position[1]-self.initial_position[1], 0)
+                self.state = TaskStep.DONE
+                
             case TaskStep.DONE:
                 self.control.set_vel_w(0, 0)
                 self.stop = True
