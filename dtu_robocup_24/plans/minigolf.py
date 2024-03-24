@@ -96,7 +96,7 @@ class MinigolfTask(BaseTask):
                     throttle_duration_sec=MESSAGE_THROTTLE,
                 )
                 # Move to the ball
-                if self.move_to_distance(self.ball_goal[0], self.ball_goal[2], 2):
+                if self.move_to_distance(self.ball_goal[0], self.ball_goal[2], 0.02):
                     self.state = TaskStep.GRAB_BALL
 
             case TaskStep.GRAB_BALL:
@@ -139,7 +139,7 @@ class MinigolfTask(BaseTask):
                     throttle_duration_sec=MESSAGE_THROTTLE,
                 )
                 # Moving ball to the aruco
-                if self.move_to_distance(self.aruco_goal[0], self.aruco_goal[2], 10):
+                if self.move_to_distance(self.aruco_goal[0], self.aruco_goal[2], 0.1):
                     # self.servo_control.upper_circle()
                     self.state = TaskStep.DROP_BALL
 
