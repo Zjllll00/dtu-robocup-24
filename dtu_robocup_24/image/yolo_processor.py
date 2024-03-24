@@ -67,10 +67,11 @@ class MLObjectProcessor(ImageProcessingUnit):
 
         # Load classes' width
         self.widths: Dict[str, ParameterWrapper] = {
-            "ball": node.declare_wparameter("ball_width", 0.04),
+            "orange ball": node.declare_wparameter("ball_width", 0.04),
             "house": node.declare_wparameter("house_width", 0.1),
             "trolley": node.declare_wparameter("trolley_width", 0.06),
         }
+        self.widths["white ball"] = self.widths["orange ball"]
         self.min_conf = node.declare_wparameter("min_conf", 0.6)
 
     # =================================================================
