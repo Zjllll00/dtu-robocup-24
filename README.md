@@ -57,7 +57,7 @@ colcon build --symlink-install
 
 You are now ready to go :)
 
-## Running the executalbes
+## Running the executables
 
 The first thing you'll have to do is to start the Raubase Stack on the robot. For that run the following commands on the robot:
 
