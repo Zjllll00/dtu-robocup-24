@@ -9,6 +9,8 @@ from raubase_ros.plan.conditions import (
 from raubase_ros.plan import BaseTask, close_to
 import numpy as np
 
+from raubase_ros.plan.data import Requirement
+
 
 class TaskStep(Enum):
     FALL_ONTO = auto()
@@ -29,6 +31,9 @@ class SeeSawTask(BaseTask):
 
     def stop_conditions(self) -> StopTaskCondition | FlowTaskCondition:
         return self.stop_cond
+
+    def requirements(self) -> Requirement:
+        return Requirement.MOVE | Requirement.ODOMETRY
 
     def loop(self) -> None:
 
