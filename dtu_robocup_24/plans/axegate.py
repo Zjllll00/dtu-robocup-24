@@ -24,10 +24,10 @@ class AxeGateTask(BaseTask):
         self.stop = False
         self.stop_con = OnValue(lambda: self.stop)
 
-    def start_conditions(self) -> StartTaskCondition | FlowTaskCondition:
+    def start_condition(self) -> StartTaskCondition | FlowTaskCondition:
         return AsSoonAsPossible()
 
-    def stop_conditions(self) -> StopTaskCondition | FlowTaskCondition:
+    def stop_condition(self) -> StopTaskCondition | FlowTaskCondition:
         return self.stop_con
 
     def requirements(self) -> Requirement:

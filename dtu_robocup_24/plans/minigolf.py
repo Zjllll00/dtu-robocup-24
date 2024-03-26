@@ -46,7 +46,7 @@ class MinigolfTask(BaseTask):
             | Requirement.YOLO
         )
 
-    def start_conditions(self) -> StartTaskCondition:
+    def start_condition(self) -> StartTaskCondition:
         return FollowPreviousTask()
 
     # =========================================================================

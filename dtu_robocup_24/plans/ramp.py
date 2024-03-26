@@ -30,10 +30,10 @@ class RampTask(BaseTask):
         self.stop = False
         self.stop_cond = OnValue(lambda: self.stop)
 
-    def start_conditions(self) -> StartTaskCondition | FlowTaskCondition:
+    def start_condition(self) -> StartTaskCondition | FlowTaskCondition:
         return FollowPreviousTask()
 
-    def stop_conditions(self) -> StopTaskCondition | FlowTaskCondition:
+    def stop_condition(self) -> StopTaskCondition | FlowTaskCondition:
         return self.stop_cond
 
     def requirements(self) -> Requirement:

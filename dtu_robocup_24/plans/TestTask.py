@@ -29,10 +29,10 @@ class TestTask(BaseTask):
     def requirements(self) -> Requirement:
         return Requirement.MOVE | Requirement.ODOMETRY
 
-    def start_conditions(self) -> StartTaskCondition:
+    def start_condition(self) -> StartTaskCondition:
         return FollowPreviousTask()
 
-    def stop_conditions(self) -> StopTaskCondition:
+    def stop_condition(self) -> StopTaskCondition:
         return Never()
 
     def loop(self) -> None:
