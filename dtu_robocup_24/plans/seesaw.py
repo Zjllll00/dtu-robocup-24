@@ -18,7 +18,7 @@ class TaskStep(Enum):
 
 class SeeSawTask(BaseTask):
     def __init__(self) -> None:
-        super().__init__("plan_template")
+        super().__init__()
 
         self.state = TaskStep.FALL_ONTO
         self.stop = False

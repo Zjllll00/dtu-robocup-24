@@ -19,7 +19,7 @@ class PlanTunnel(Node):
     CAMERA_INFO_TOPIC = "camera_info"
 
     def __init__(self) -> None:
-        super().__init__("plan_template")
+        super().__init__()
 
         self.yolo_results = YoloResults()
         self.sub = self.create_subscription(

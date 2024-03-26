@@ -24,7 +24,7 @@ class TaskStep(Enum):
 
 class RampTask(BaseTask):
     def __init__(self) -> None:
-        super().__init__("plan_template")
+        super().__init__()
 
         self.state = TaskStep.TURN_DIR_RAMP
         self.stop = False
