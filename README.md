@@ -41,8 +41,8 @@ python3 -m pip install numpy scipy ultralytics
 ```shell
 mkdir dtu_ws/src
 cd dtu_ws/src
-git clone git@github.com:Baxterminator/raubase_ros.git
-git clone git@github.com:Baxterminator/raubase_msgs.git
+git clone https://ithub.com:Baxterminator/raubase_ros.git
+git clone https://github.com:Baxterminator/raubase_msgs.git
 cd ..
 colcon build --symlink-install
 ```
