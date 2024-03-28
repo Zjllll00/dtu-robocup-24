@@ -12,7 +12,7 @@ warnings.simplefilter("ignore", UserWarning)
 
 class DTURobocup24Plan(BehaviourPlan):
     def __init__(self) -> None:
-        super().__init__(require_user_input=True)
+        super().__init__(require_user_input=False)
 
         self.add_task(SeeSawTask())
         self.add_task(RampTask())
