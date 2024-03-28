@@ -52,6 +52,6 @@ class SeeSawTask(BaseTask):
                 if self.data.distance >= 2.45:
                     self.state = TaskStep.DONE
             case TaskStep.DONE:
-                self.logger("Exiting see-saw")
+                self.logger.info("Exiting see-saw")
                 self.control.set_vel_w(0, 0)
                 self.done = True
