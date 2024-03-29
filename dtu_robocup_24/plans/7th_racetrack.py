@@ -1,154 +1,154 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[ ]:
-
-
-from rclpy import init, ok, shutdown, spin
-from rclpy.node import Node
-from raubase_msgs.msg import YoloResults, CmdMove
-from sensor_msgs.msg import CameraInfo
-from time import time
-import math
+from raubase_ros.plan import BaseTask, close_to
+from raubase_ros.plan.data import Requirement
+from enum import Enum, auto
+from raubase_ros.plan.conditions import (
+    FollowPreviousTask,
+    OnValue,
+    StartTaskCondition,
+)
+import numpy as np
 
 
-class PlanRacetrack(Node):
 
-    YOLO_SUB_TOPIC = "yolo"
-    MOVE_TOPIC = "move"
-    CAMERA_INFO_TOPIC = "camera_info"
-
+class TaskStep(Enum):
+    LAUNCH_RACE_TRACK = auto()
+    LEFT_90 = auto()
+    FORWARD_50_1 = auto()
+    RIGHT_90_1 = auto()
+    FORWARD_60_1 = auto()
+    RIGHT_90_2 = auto()
+    FORWARD_50_2 = auto()
+    RIGHT_90_3 = auto()
+    FORWARD_60_2 = auto()
+    ADJUST_POSE = auto()
+    RACE_TRACK = auto()
+    DONE = auto()
+    
+class ThreegateTask(BaseTask):
     def __init__(self) -> None:
         super().__init__()
+        self.state = TaskStep.CROSS_THREE_GATES
+        self.stop = False
+        self.stop_cond = OnValue(lambda: self.stop)
 
-        self.yolo_results = YoloResults()
-        self.sub = self.create_subscription(
-            YoloResults, PlanTemplate.YOLO_SUB_TOPIC, self.yolo_result_callback, 10
+    def stop_condition(self):
+        return self.stop_cond
+
+    def requirements(self) -> Requirement:
+        return (
+            Requirement.MOVE
+            | Requirement.ODOMETRY
         )
-        self.cam_info = CameraInfo()
-        self.cam_info_sub = self.create_subscription(
-            CameraInfo, PlanTemplate.CAMERA_INFO_TOPIC, 10
-        )
-        self.move_cmd = CmdMove()
-        self.move_cmd.move_type = CmdMove.CMD_V_TR
-        self.pub = self.create_publisher(CmdMove, PlanTemplate.MOVE_TOPIC, 10)
 
-        self.state = 100
-        self.time = time()
+    def start_conditions(self) -> StartTaskCondition:
+        return FollowPreviousTask()
 
-    def yolo_result_callback(self, res: YoloResults):
-        self.yolo_results = res
 
-    def cam_info_callback(self, msg: CameraInfo):
-        self.cam_info = msg
-        
-    def rotate(self, turn_rate, duration):
-        """
-        rotate the robot for a customized time.
-        """
-        self.move_cmd.velocity = 0.0  # 停止前进
-        self.move_cmd.turn_rate = turn_rate  # 设置旋转速率
-        sleep(duration)  # wait for a while
-        self.move_cmd.turn_rate = 0.0  # Stop rotating.
-        sleep(1)  # Wait a moment before the next rotation (optional, adjust as needed).
-        
-    def caldist(class_id,rect):
-        if class_id == 'ball':
-            real_world_diameter_cm = 4
-        elif class_id == 'house':
-            real_world_diameter_cm = 10
-        elif class_id == 'trolley':
-            real_world_diameter_cm = 6
-        else
-            return None
-        # Use cam info
-        self.cam_info.k  # K matrix (3x3) of the camera
-        self.cam_info.d  # d vector of the camera
-        xmin, xmax, ymin, ymax = rect
-        width = xmax - xmin
-        height = ymax - ymin 
-        # Calculate diameter in pixels as the average of width and height
-        diameter_in_image_px = (width + height) / 2
- 
-        # Correct for camera distortion
-        center_px = np.array([[[x + width / 2, y + height / 2]]], dtype=np.float32)
-        undistorted_points = cv2.undistortPoints(center_px, self.cam_info.k, self.cam_info.d)
-        x_corrected, y_corrected = undistorted_points[0,0,:]
-
-        # Estimate the Z distance
-        focal_length_px = (self.cam_info.k[0, 0] + self.cam_info.k[1, 1]) / 2
-        Zc = (focal_length_px * real_world_diameter_cm) / diameter_in_image_px
-
-        # Estimate X and Y based on Z
-        Xc = (x_corrected - self.cam_info.k[0,2]) * Zc / self.cam_info.k[0, 0]
-        Yc = (y_corrected - self.cam_info.k[1,2]) * Zc /self.cam_info.k[1, 1]
-        return (Xc, Yc, Zc)
-    
-    def move_to_distance(Xc, Yc, Zc,target_distance):  
-        turn_rate = 0.1 if Xc > 0 else -0.1  # rotate based on left or right
-        rotation_angle = math.atan(abs(Xc) / Zc)  # calculate the rotation angle
-        rotation_time = abs(rotation_angle) / turn_rate  # calculate the rotation time
-        # implementing rotation
-        self.move_cmd.velocity = 0.0
-        self.move_cmd.turn_rate = turn_rate
-        sleep(rotation_time)
-        self.move_cmd.turn_rate = turn_rate
-
-        distance_error = Zc - target_distance  # move distance
-        velocity = 0.1 if distance_error > 0 else -0.1  # forward or backward
-        move_time = abs(distance_error) / velocity  # calculate the moving time
-        self.move_cmd.velocity = velocity
-        self.move_cmd.turn_rate = 0.0
-        sleep(move_time)
-        self.move_cmd.velocity = 0.0
-        
     def loop(self) -> None:
-        # TODO: STATE MACHINE
-        if state == 150:
-        print("Go the the back of the start gate")
-        #left 90 degreee
-        self.move_cmd.velocity = 0.0
-        self.move_cmd.turn_rate = 0.1
-        sleep(math.pi/0.2)
-        self.move_cmd.turn_rate = 0.0
-        # foward 50 cm (corrected roughly)the width of start gate of race track
-        self.move_cmd.velocity = 0.01
-        sleep(5)
-        self.move_cmd.velocity = 0.0
-        # right 90 degree
-        self.move_cmd.turn_rate = -0.1
-        sleep(math.pi/0.2)
-        self.move_cmd.turn_rate = 0.0
-        # foward 60 cm (corrected roughly) the distance to gate
-        self.move_cmd.velocity = 0.1
-        sleep(2.5)
-        self.move_cmd.velocity = 0.0
-        # right 90 degree
-        self.move_cmd.turn_rate = -0.1
-        sleep(math.pi/0.2)
-        self.move_cmd.turn_rate = 0.0
-        # forward 50 cm (corrected roughly)
-        self.move_cmd.velocity = 0.1
-        sleep(6)
-        # right 90 degree
-        self.move_cmd.velocity = 0
-        self.move_cmd.turn_rate = -0.1
-        sleep(math.pi/0.2)
-        print("Pass the start gate")
-        # foward 60 cm
-        self.move_cmd.turn_rate = 0
-        self.move_cmd.velocity = 1
-        sleep(0.6)
-        self.move_cmd.velocity = 0
-        # right 45-60 degree(corrected roughly)
-        print("Adjust the position")
-        self.move_cmd.turn_rate = -1
-        sleep(math.pi/4)
-        self.move_cmd.turn_rate = 0.0
-        #Pass the race track, triangle 3/3.25/4.5m(corrected roughly)
-        self.move_cmd.velocity = 3
-        sleep(1.5)
-        break
+        match self.state:
+            case TaskStep.LAUNCH_RACE_TRACK:
+                self.logger.info("Go to the start of race track...")
+                self.data.reset_time()
+                self.state = TaskStep.LEFT_90
+            
+            case TaskStep.LEFT_90:
+            self.logger.info("Turn left 90 degree...")
+                # adjust pose
+                self.data.reset_time()
+                self.control.set_vel_h(0.0,1.0)
+                if self.data.time_elapsed >= (math.pi/0.2):
+                    self.control.set_vel_h(0,0)
+                    self.data.reset_time()
+                    self.state = TaskStep.FORWARD_50_1
+                    
+            case TaskStep.FORWARD_50_1:
+                self.logger.info("Move forward 50cm...")
+                self.data.reset_distance()
+                self.control.set_vel_h(0.1,0.0)
+
+                if self.data.distance > 0.5
+                    self.data.reset_distance()
+                    self.state = TaskStep.RIGHT_90_1
+
+            case TaskStep.RIGHT_90_1:
+            self.logger.info("Turn right 90 degree...")
+                # adjust pose
+                self.data.reset_time()
+                self.control.set_vel_h(0.0,-0.1)
+                if self.data.time_elapsed >= (math.pi/0.2):
+                    self.control.set_vel_h(0,0)
+                    self.data.reset_time()
+                    self.state = TaskStep.FORWARD_60_1
+                    
+            case TaskStep.FORWARD_60_1:
+                self.logger.info("Move forward 60cm...")
+                self.data.reset_distance()
+                self.control.set_vel_h(0.1,0.0)
+
+                if self.data.distance > 0.6
+                    self.data.reset_distance()
+                    self.state = TaskStep.RIGHT_90_2
+                    
+            case TaskStep.RIGHT_90_2:
+            self.logger.info("Turn right 90 degree...")
+                # adjust pose
+                self.data.reset_time()
+                self.control.set_vel_h(0.0,-0.1)
+                if self.data.time_elapsed >= (math.pi/0.2):
+                    self.control.set_vel_h(0,0)
+                    self.data.reset_time()
+                    self.state = TaskStep.FORWARD_50_2
+                    
+            case TaskStep.FORWARD_50_2:
+                self.logger.info("Move forward 50cm...")
+                self.data.reset_distance()
+                self.control.set_vel_h(0.1,0.0)
+
+                if self.data.distance > 0.5
+                    self.data.reset_distance()
+                    self.state = TaskStepRIGHT_90_3
+                    
+            case TaskStep.RIGHT_90_3:
+            self.logger.info("Turn right 90 degree...")
+                # adjust pose
+                self.data.reset_time()
+                self.control.set_vel_h(0.0,-0.1)
+                if self.data.time_elapsed >= (math.pi/0.2):
+                    self.control.set_vel_h(0,0)
+                    self.data.reset_time()
+                    self.state = TaskStep.FORWARD_60_2
+            
+            case TaskStep.FORWARD_60_2:
+                self.logger.info("Move forward 60cm...")
+                self.data.reset_distance()
+                self.control.set_vel_h(0.1,0.0)
+
+                if self.data.distance > 0.6
+                    self.data.reset_distance()
+                    self.state = TaskStep.ADJUST_POSE
+                    
+            case TaskStep.ADJUST_POSE:
+            self.logger.info("Adjust the heading")
+                # adjust pose
+                self.data.reset_time()
+                self.control.set_vel_h(0.0,-1.0)
+                if self.data.time_elapsed >= (math.pi/4):
+                    self.control.set_vel_h(0,0)
+                    self.data.reset_time()
+                    self.state = TaskStep.RACE_TRACK
+                    
+            case TaskStep.RACE_TRACK:
+                self.logger.info("pass the end gate...")
+                self.data.reset_distance()
+                self.control.set_vel_h(1.5,0.0)
+
+                if self.data.distance > 4.5
+                    self.data.reset_distance()
+                    self.state = TaskStep.DONE
+                    
+            case TaskStep.DONE:
+                self.control.set_vel_w(0, 0)
+                self.stop = True
 
 if __name__ == "__main__":
     init()
@@ -159,4 +159,3 @@ if __name__ == "__main__":
         spin(node)
 
     shutdown()
-
