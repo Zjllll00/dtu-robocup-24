@@ -19,9 +19,9 @@ class DTURobocup24Plan(BehaviourPlan):
     def __init__(self) -> None:
         super().__init__(require_user_input=False)
 
+        self.add_task(MinigolfTask())
         self.add_task(RampTask())
         self.add_task(SeeSawTask())
-        self.add_task(MinigolfTask())
         self.add_task(AxeGateTask())
         # self.add_task(PackageDelivery())
 
