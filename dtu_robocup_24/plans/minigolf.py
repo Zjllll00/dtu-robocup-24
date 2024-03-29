@@ -79,7 +79,7 @@ class MinigolfTask(BaseTask):
                 for r in self.data.last_yolo:
                     class_id = r.classifier
                     conf = r.confidence
-                    if class_id == "ball" and conf > 0.7:  # Detection of ball
+                    if class_id == "orange_ball" and conf > 0.7:  # Detection of ball
                         self.ball_goal = (r.robot_x.x, r.robot_x.y, r.robot_x.z)
                         self.state = TaskStep.MOVE_TO_BALL
                         break
