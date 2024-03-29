@@ -11,8 +11,8 @@ from raubase_ros.plan.conditions import (
 import numpy as np
 
 MESSAGE_THROTTLE = 1.0
-LOOKING_TIME = 2.0
-
+LOOKING_TIME = 5.0
+SERVO_INDEX = 1
 
 class TaskStep(Enum):
     LAUNCH_BALL_FINDING = auto()
@@ -23,18 +23,23 @@ class TaskStep(Enum):
     MOVE_BALL_TO_ARUCO = auto()
     DROP_BALL = auto()
     COUNT_BALL = auto()
+    BACK_TO_START = auto()
     DONE = auto()
 
 
 class MinigolfTask(BaseTask):
+    ARM_POS_DOWN = -1024
+    ARM_POS_UP = 1024
+    SERVO_VEL = 80
     def __init__(self) -> None:
         super().__init__()
-        self.state = TaskStep.FIND_BALL
+        self.state = TaskStep.LAUNCH_BALL_FINDING
         self.stop = False
         self.stop_cond = OnValue(lambda: self.stop)
         self.n_balls = 0
         self.ball_goal: Tuple[float, float, float] | None = None
         self.aruco_goal: Tuple[float, float, float] | None = None
+        self.initial_position: Tuple[float,float,float] | None = None
 
     def stop_condition(self):
         return self.stop_cond
@@ -69,12 +74,17 @@ class MinigolfTask(BaseTask):
         match self.state:
             case TaskStep.LAUNCH_BALL_FINDING:
                 self.logger.info("Looking for a ball")
+                self.initial_position = (
+                    self.data.odometry.x,
+                    self.data.odometry.y,
+                    self.data.odometry.heading,
+                )
                 self.data.reset_time()
                 self.state = TaskStep.FIND_BALL
 
             case TaskStep.FIND_BALL:
                 # Move around to find ball
-                self.control.set_vel_w(0, 0.2)
+                self.control.set_vel_w(0, 0.3)
 
                 # Get result from YOLO
                 for r in self.data.last_yolo.detected:
@@ -89,7 +99,7 @@ class MinigolfTask(BaseTask):
                 # If no ball found, stop
                 if self.data.time_elapsed >= LOOKING_TIME:
                     self.logger.info("No ball found, stopping task ...")
-                    self.state = TaskStep.DONE
+                    self.state = TaskStep.BACK_TO_START
                     self.data.reset_distance()
 
             case TaskStep.MOVE_TO_BALL:
@@ -103,8 +113,8 @@ class MinigolfTask(BaseTask):
                         "Trying to move to ArUco code but did not saved its position internally ...",
                         throttle_duration_sec=MESSAGE_THROTTLE,
                     )
-                    self.state = TaskStep.DONE
-                elif self.move_to_distance(self.ball_goal[0], self.ball_goal[2], 2):
+                    self.state = TaskStep.BACK_TO_START
+                elif self.move_to_distance(self.ball_goal[0], self.ball_goal[2], 0.02):
                     self.state = TaskStep.GRAB_BALL
 
             case TaskStep.GRAB_BALL:
@@ -113,7 +123,9 @@ class MinigolfTask(BaseTask):
                     throttle_duration_sec=MESSAGE_THROTTLE,
                 )
 
-                # Servo_control.lower_circle()
+                self.control.set_servo(
+                    SERVO_INDEX, MinigolfTask.ARM_POS_DOWN, MinigolfTask.SERVO_VEL
+                )
                 self.state = TaskStep.FIND_ARUCO
 
             case TaskStep.FIND_ARUCO:
@@ -139,7 +151,7 @@ class MinigolfTask(BaseTask):
                 # If no ArUco found, stop
                 if self.data.time_elapsed >= LOOKING_TIME:
                     self.logger.info("No ArUco code found, stopping task ...")
-                    self.state = TaskStep.DONE
+                    self.state = TaskStep.BACK_TO_START
                     self.data.reset_distance()
 
             case TaskStep.MOVE_BALL_TO_ARUCO:
@@ -154,8 +166,7 @@ class MinigolfTask(BaseTask):
                         throttle_duration_sec=MESSAGE_THROTTLE,
                     )
                     self.state = TaskStep.DONE
-                elif self.move_to_distance(self.aruco_goal[0], self.aruco_goal[2], 10):
-                    # self.servo_control.upper_circle()
+                elif self.move_to_distance(self.aruco_goal[0], self.aruco_goal[2], 0.10):
                     self.state = TaskStep.DROP_BALL
 
             case TaskStep.DROP_BALL:
@@ -164,7 +175,9 @@ class MinigolfTask(BaseTask):
                     throttle_duration_sec=MESSAGE_THROTTLE,
                 )
 
-                # Servo_control.lower_circle()
+                self.control.set_servo(
+                    SERVO_INDEX, MinigolfTask.ARM_POS_UP, MinigolfTask.SERVO_VEL
+                )
                 self.state = TaskStep.COUNT_BALL
 
             case TaskStep.COUNT_BALL:
@@ -172,16 +185,27 @@ class MinigolfTask(BaseTask):
                     [
                         obj
                         for obj in self.data.last_yolo.detected
-                        if obj.classifier == "ball"
+                        if obj.classifier == "orange_ball"
                     ]
                 )
                 if ball_count >= 4:
-                    self.logger.info("We are still missing balls, let's try again")
-                    self.state = TaskStep.DONE
-                else:
                     self.logger.info("Collected all 4 balls, we can stop")
+                    self.state = TaskStep.BACK_TO_START
+                else:
+                    self.logger.info("We are still missing balls, let's try again")
                     self.state = TaskStep.MOVE_TO_BALL  # restart
+                    
+            case TaskStep.BACK_TO_START:
+                """
+                Moving back to original position so that we can grab the line
+                """
 
+                if self.move_to_distance(
+                    self.data.odometry.x - self.initial_position[0],
+                    self.data.odometry.y - self.initial_position[1],
+                    0,
+                ):
+                    self.state = TaskStep.DONE
             case TaskStep.DONE:
                 self.control.set_vel_w(0, 0)
                 self.stop = True
