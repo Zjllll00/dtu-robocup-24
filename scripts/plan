@@ -3,8 +3,13 @@ import warnings
 from raubase_ros.plan import BehaviourPlan
 from rclpy import init, ok, spin_once, shutdown
 
-from dtu_robocup_24.plans.TestTask import TestTask
-from dtu_robocup_24.plans import SeeSawTask, MinigolfTask, RampTask, AxeGateTask
+from dtu_robocup_24.plans import (
+    SeeSawTask,
+    MinigolfTask,
+    RampTask,
+    AxeGateTask,
+    PackageDelivery,
+)
 
 
 warnings.simplefilter("ignore", UserWarning)
@@ -18,7 +23,7 @@ class DTURobocup24Plan(BehaviourPlan):
         self.add_task(SeeSawTask())
         self.add_task(MinigolfTask())
         self.add_task(AxeGateTask())
-        # self.add_task(TestTask())
+        # self.add_task(PackageDelivery())
 
 
 if __name__ == "__main__":
