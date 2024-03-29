@@ -4,7 +4,7 @@ from raubase_ros.plan.conditions import (
     FlowTaskCondition,
     StartTaskCondition,
     StopTaskCondition,
-    AsSoonAsPossible,
+    FollowPreviousTask,
     OnValue,
 )
 from raubase_ros.plan.data import Requirement
@@ -25,7 +25,7 @@ class AxeGateTask(BaseTask):
         self.stop_con = OnValue(lambda: self.stop)
 
     def start_condition(self) -> StartTaskCondition | FlowTaskCondition:
-        return AsSoonAsPossible()
+        return FollowPreviousTask()
 
     def stop_condition(self) -> StopTaskCondition | FlowTaskCondition:
         return self.stop_con
