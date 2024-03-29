@@ -1,6 +1,7 @@
 from typing import Tuple
 from raubase_ros.plan import BaseTask, close_to
 from raubase_ros.plan.data import Requirement
+from raubase_msgs.msg import ObjectArUco, ObjectYolo
 from enum import Enum, auto
 from raubase_ros.plan.conditions import (
     FollowPreviousTask,
@@ -53,7 +54,7 @@ class MinigolfTask(BaseTask):
 
     def move_to_distance(self, Xc, Zc, target_distance) -> bool:
         # implementing rotation
-        rot_angle = np.atan(Xc / Zc)  # calculate the rotation angle
+        rot_angle = np.arctan2(Zc, Xc)  # calculate the rotation angle
         velocity = 0.2 if (Zc - target_distance) > 0 else -0.2  # forward or backward
 
         if close_to(rot_angle, 0) and close_to(Zc - target_distance, 0, 0.1):
@@ -76,7 +77,8 @@ class MinigolfTask(BaseTask):
                 self.control.set_vel_w(0, 0.2)
 
                 # Get result from YOLO
-                for r in self.data.last_yolo:
+                for r in self.data.last_yolo.detected:
+                    assert type(r) is ObjectYolo
                     class_id = r.classifier
                     conf = r.confidence
                     if class_id == "orange_ball" and conf > 0.7:  # Detection of ball
@@ -96,7 +98,13 @@ class MinigolfTask(BaseTask):
                     throttle_duration_sec=MESSAGE_THROTTLE,
                 )
                 # Move to the ball
-                if self.move_to_distance(self.ball_goal[0], self.ball_goal[2], 2):
+                if self.ball_goal is None:
+                    self.logger.error(
+                        "Trying to move to ArUco code but did not saved its position internally ...",
+                        throttle_duration_sec=MESSAGE_THROTTLE,
+                    )
+                    self.state = TaskStep.DONE
+                elif self.move_to_distance(self.ball_goal[0], self.ball_goal[2], 2):
                     self.state = TaskStep.GRAB_BALL
 
             case TaskStep.GRAB_BALL:
@@ -118,7 +126,8 @@ class MinigolfTask(BaseTask):
                 self.control.set_vel_w(0, 0.2)
 
                 # Get the result from aruco detect
-                for code in self.data.last_aruco:
+                for code in self.data.last_aruco.detected:
+                    assert type(code) is ObjectArUco
                     id = code.id
 
                     # break the loop when detect aruco
@@ -139,7 +148,13 @@ class MinigolfTask(BaseTask):
                     throttle_duration_sec=MESSAGE_THROTTLE,
                 )
                 # Moving ball to the aruco
-                if self.move_to_distance(self.aruco_goal[0], self.aruco_goal[2], 10):
+                if self.aruco_goal is None:
+                    self.logger.error(
+                        "Trying to move to ArUco code but did not saved its position internally ...",
+                        throttle_duration_sec=MESSAGE_THROTTLE,
+                    )
+                    self.state = TaskStep.DONE
+                elif self.move_to_distance(self.aruco_goal[0], self.aruco_goal[2], 10):
                     # self.servo_control.upper_circle()
                     self.state = TaskStep.DROP_BALL
 
@@ -154,7 +169,11 @@ class MinigolfTask(BaseTask):
 
             case TaskStep.COUNT_BALL:
                 ball_count = len(
-                    [obj for obj in self.data.last_yolo if obj.classifier == "ball"]
+                    [
+                        obj
+                        for obj in self.data.last_yolo.detected
+                        if obj.classifier == "ball"
+                    ]
                 )
                 if ball_count >= 4:
                     self.logger.info("We are still missing balls, let's try again")

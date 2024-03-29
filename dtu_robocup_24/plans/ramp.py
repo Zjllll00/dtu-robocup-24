@@ -63,7 +63,7 @@ class RampTask(BaseTask):
 
             case TaskStep.BOARD_FORWARD:
                 self.logger.info("Climbing ...")
-                self.control.follow_line(True, 0.3)
+                self.control.follow_line(True, 0.3, 0.4)
 
                 if self.data.distance >= 2.7:
                     self.state = TaskStep.TURN_TO_STAIRS
