@@ -17,6 +17,7 @@ import numpy as np
 
 MESSAGE_THROTTLE = 1.0
 LOOKING_TIME = 5.0
+index = 1
 
 class TaskStep(Enum):
     LAUNCH_TROLLEY_FINDING = auto()
@@ -141,7 +142,7 @@ class ThreegateTask(BaseTask):
                     
             case TaskStep.GRAB_GREEN_TROLLEY:
                 self.logger.info("Grabbing green trolley", trottle_duration_sec=MESSAGE_THROTTLE,)
-                #self.servo_control.lower_circle()
+                self.cintrol.set_servo(index, -1024, 1024)
                 self.state = TaskStep.DETECT_HOUSE_1st
                     
             case TaskStep.DETECT_HOUSE_1st:
@@ -192,7 +193,7 @@ class ThreegateTask(BaseTask):
                     
             case TaskStep.DROP_GREEN_TROLLEY:
                 self.logger.info("Dropping the green trolley", trottle_duration_sec=MESSAGE_THROTTLE,)
-                #self.servo_control.upper_circle()
+                self.cintrol.set_servo(index, 1024, 1024)
                 
                 self.data.reset_distance()
                 self.control.set_vel_h(0.1,0.0)
@@ -245,7 +246,7 @@ class ThreegateTask(BaseTask):
                     
             case TaskStep.GRAB_RED_TROLLEY:
                 self.logger.info("Grabbing RED trolley", trottle_duration_sec=MESSAGE_THROTTLE,)
-                #self.servo_control.lower_circle()
+                self.cintrol.set_servo(index, -1024, 1024)
                 self.state = TaskStep.DETECT_HOUSE_2nd
                     
             case TaskStep.DETECT_HOUSE_2nd:
@@ -296,7 +297,7 @@ class ThreegateTask(BaseTask):
                     
             case TaskStep.DROP_RED_TROLLEY:
                 self.logger.info("Dropping the RED trolley", trottle_duration_sec=MESSAGE_THROTTLE,)
-                #self.servo_control.upper_circle()
+                self.cintrol.set_servo(index, 1024, 1024)
                 
                 self.data.reset_distance()
                 self.control.set_vel_h(0.1,0.0)
@@ -349,7 +350,7 @@ class ThreegateTask(BaseTask):
                     
             case TaskStep.GRAB_YELLOW_TROLLEY:
                 self.logger.info("Grabbing green trolley", trottle_duration_sec=MESSAGE_THROTTLE,)
-                #self.servo_control.lower_circle()
+                self.cintrol.set_servo(index, -1024, 1024)
                 self.state = TaskStep.DETECT_HOUSE_3rd
                     
             case TaskStep.DETECT_HOUSE_3rd:
@@ -400,7 +401,7 @@ class ThreegateTask(BaseTask):
                     
             case TaskStep.DROP_YELLOW_TROLLEY:
                 self.logger.info("Dropping the YELLOW trolley", trottle_duration_sec=MESSAGE_THROTTLE,)
-                #self.servo_control.upper_circle()
+                self.cintrol.set_servo(index, 1024, 1024)
                 
                 self.data.reset_distance()
                 self.control.set_vel_h(0.1,0.0)
@@ -419,4 +420,3 @@ class ThreegateTask(BaseTask):
                 case TaskStep.DONE:
                 self.control.set_vel_w(0, 0)
                 self.stop = True
-
