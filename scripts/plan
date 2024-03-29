@@ -22,10 +22,14 @@ class DTURobocup24Plan(BehaviourPlan):
 
         self.add_task(StartTask())
         self.add_task(RampTask())
-        self.add_task(SeeSawTask())
         self.add_task(MinigolfTask())
+        self.add_task(PackageDelivery())
+        #self.add_task(ThreeGateTask())
         self.add_task(AxeGateTask())
-        # self.add_task(PackageDelivery())
+        #self.add_task(TunnelTask())
+        #self.add_task(RaceTrackTask())
+        #self.add_task(SeeSawTask())
+        #self.add_task(SirenTask())
 
 
 if __name__ == "__main__":
